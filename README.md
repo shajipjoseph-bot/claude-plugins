@@ -11,6 +11,9 @@ above the prompt while Claude works on a task:
 ████████████░░░░░░░░ Running 3/5 tasks · 1m 12s · $0.420 so far · est. $0.700
 ```
 
+- In the Claude app (and any session where the prompt-box bar is not drawn), a
+  summary line appears under each answer when the task finishes, and a short
+  pop-up shows progress each time a task-list item is completed.
 - `/agent-info` toggles it; `/agent-info on` / `/agent-info off` set it. The
   choice is remembered across sessions.
 - The bar fills as Claude ticks off its task list. With no list, it shows a

@@ -51,6 +51,12 @@ async function costNow($: EngineInterface) {
   return (await $.session.usage()).cost?.usd ?? 0
 }
 
+async function toastProgress($: EngineInterface, r: Run | null) {
+  if (r && r.isRunning && r.total > 0 && (await read($, isOn))) {
+    $.ui.toast(`${bar(r)} ${summary(r)}`)
+  }
+}
+
 export const register: Register = on => {
   let baseUsd = 0
   let timer: Timer | undefined
@@ -78,7 +84,7 @@ export const register: Register = on => {
 
     return {
       text: want
-        ? 'Agent info on: a progress bar and estimated cost show above the prompt while a task runs. /agent-info off to hide.'
+        ? 'Agent info on: progress and estimated cost show while a task runs, and a summary line under each answer. /agent-info off to hide.'
         : 'Agent info off.',
     }
   })
@@ -127,7 +133,8 @@ export const register: Register = on => {
     if (res.deny === undefined && res.isError !== true) {
       const total = e.todos.length
       const done = e.todos.filter(t => t.status === 'completed').length
-      await update($, run, cur => (cur ? { ...cur, total, done } : cur))
+      const r = await update($, run, cur => (cur ? { ...cur, total, done } : cur))
+      await toastProgress($, r)
     }
 
     return res
@@ -146,7 +153,8 @@ export const register: Register = on => {
     const res = await next(e)
     if (res.deny === undefined && res.isError !== true) {
       if (e.status === 'completed') {
-        await update($, run, cur => (cur ? { ...cur, done: cur.done + 1 } : cur))
+        const r = await update($, run, cur => (cur ? { ...cur, done: cur.done + 1 } : cur))
+        await toastProgress($, r)
       } else if (e.status === 'deleted') {
         await update($, run, cur => (cur ? { ...cur, total: Math.max(0, cur.total - 1) } : cur))
       }
@@ -156,20 +164,25 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('turn.complete', async ($, e, next) => {
-    if (e.agentId === undefined) {
-      timer?.cancel()
-      timer = undefined
-      const now = await $.clock.now()
-      const usd = await costNow($)
-      await update($, run, cur =>
-        cur
-          ? { ...cur, isRunning: false, elapsedMs: now - cur.startedAt, spentUsd: usd - baseUsd }
-          : cur,
-      )
-      $.ui.status(undefined)
+    if (e.agentId !== undefined) {
+      return next(e)
+    }
+    timer?.cancel()
+    timer = undefined
+    const now = await $.clock.now()
+    const usd = await costNow($)
+    const r = await update($, run, cur =>
+      cur
+        ? { ...cur, isRunning: false, elapsedMs: now - cur.startedAt, spentUsd: usd - baseUsd }
+        : cur,
+    )
+    $.ui.status(undefined)
+    const res = await next(e)
+    if (r === null || !(await read($, isOn))) {
+      return res
     }
 
-    return next(e)
+    return { ...res, text: `${bar(r)} ${summary(r)}` }
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {

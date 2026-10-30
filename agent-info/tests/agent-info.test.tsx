@@ -20,7 +20,9 @@ test('progress bar and cost estimate follow the task list', async ($, on) => {
   on('command.run', () => ({ text: 'engine' }))
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
   on('tool.call', () => ({ result: {} }))
-  on('turn.complete', () => ({ text: '' }))
+  on('turn.complete', () => ({ text: 'the answer' }))
+  const toasts: string[] = []
+  on('ui.toast', (_, e) => (toasts.push(String((e as any).text)), { value: undefined }))
   on('ui.render', ($, e) => {
     const { Text } = $.ui.resolve(e)
     return <Text>engine</Text>
@@ -40,7 +42,9 @@ test('progress bar and cost estimate follow the task list', async ($, on) => {
       { content: 'b', status: 'in_progress', activeForm: 'b' },
     ],
   })
-  await $.turn.complete({ answer: '', durationMs: 1000, isAborted: false, turnId: 't1' } as any)
+  expect(toasts.some(t => /1\/2 tasks/.test(t))).toBe(true)
+  const done = await $.turn.complete({ answer: '', durationMs: 1000, isAborted: false, turnId: 't1', reason: 'answer' } as any)
+  expect(done.text).toMatch(/Done 1\/2 tasks · 1m 5s · cost \$0\.500/)
 
   const ui = await $.ui.mount(BAND as any)
   const line = await ui.find({ type: 'Text', text: /cost/ })
