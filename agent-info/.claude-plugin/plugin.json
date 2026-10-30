@@ -1,0 +1,1 @@
+{ "name": "agent-info", "version": "0.1.0", "description": "/agent-info: a live progress bar and estimated cost while a task runs", "types": "./types/index.d.ts" }

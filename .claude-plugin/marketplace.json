@@ -1,0 +1,11 @@
+{
+  "name": "shajipjoseph-plugins",
+  "owner": { "name": "shajipjoseph-bot" },
+  "plugins": [
+    {
+      "name": "agent-info",
+      "source": "./agent-info",
+      "description": "/agent-info: a live progress bar and estimated cost while a task runs"
+    }
+  ]
+}
