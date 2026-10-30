@@ -21,21 +21,34 @@ above the prompt while Claude works on a task:
 
 ## Install
 
-At the prompt of a Claude Code terminal session:
-
-```
-/plugin install agent-info --marketplace shajipjoseph-bot/claude-plugins
-```
-
-From a shell:
+You need [Git](https://git-scm.com/) installed. Then, from a shell
+(PowerShell, Command Prompt or a terminal), run these two commands:
 
 ```bash
-claude plugin install agent-info --marketplace shajipjoseph-bot/claude-plugins
+claude plugin marketplace add shajipjoseph-bot/claude-plugins
 ```
 
-In the desktop app: click **+** next to the prompt box, then **Plugins**,
-**Add marketplace** with `shajipjoseph-bot/claude-plugins`, then **Add plugin**.
+```bash
+claude plugin install agent-info@shajipjoseph-plugins
+```
+
+`shajipjoseph-plugins` is the marketplace's own name, which differs from the
+repository's. Start a new session with `claude` and type `/agent-info`.
 
 This repository is private: installing needs read access to it on GitHub and a
-git credential for github.com on your machine (an SSH key, or
-`gh auth login` then `gh auth setup-git`).
+git credential for github.com on your machine. The simplest is the GitHub CLI,
+`gh auth login` then `gh auth setup-git`.
+
+Adding the marketplace from the claude.ai / desktop app's Customize screen
+failed for this private repository when tried; use the commands above.
+
+### Troubleshooting
+
+- **`'C:\Users\<you>\git' is not recognized`** (Windows): a stray file or
+  folder named `git` in the folder you ran the command from is hiding the real
+  Git. Run the command from another folder (`cd $env:TEMP`), or rename that
+  stray item if it is not yours (an empty file named `git` is safe to rename).
+- **`Plugin "agent-info" not found in marketplace`**: the marketplace was not
+  added; run the `marketplace add` command again and read its error.
+
+To update later: `claude plugin marketplace update shajipjoseph-plugins`.
